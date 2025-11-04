@@ -1755,36 +1755,18 @@ def main():
     global _ROOT, g_verbose, g_default_model, g_logprefix, g_config, g_config_path, g_ui_path
 
     # Load .env file if it exists
-    print(f"[DEBUG] Current working directory: {Path.cwd()}")
     if HAS_DOTENV:
         # Try to load from current directory first
         dotenv_path = Path.cwd() / '.env'
-        print(f"[DEBUG] Checking for .env at: {dotenv_path}")
         if dotenv_path.exists():
             load_dotenv(dotenv_path, override=True)
-            print(f"[DEBUG] Loaded .env from {dotenv_path}")
-            api_key = os.environ.get('AIREFINERY_API_KEY', '')
-            if api_key:
-                print(f"[DEBUG] AIREFINERY_API_KEY loaded: {api_key[:10]}...{api_key[-10:]} (length: {len(api_key)})")
-            else:
-                print("[DEBUG] AIREFINERY_API_KEY not found in environment")
         else:
-            print(f"[DEBUG] .env not found in current directory, searching parents...")
             # Try parent directories
             for parent in [Path.cwd()] + list(Path.cwd().parents):
                 dotenv_path = parent / '.env'
-                print(f"[DEBUG] Checking: {dotenv_path}")
                 if dotenv_path.exists():
                     load_dotenv(dotenv_path, override=True)
-                    print(f"[DEBUG] Loaded .env from {dotenv_path}")
-                    api_key = os.environ.get('AIREFINERY_API_KEY', '')
-                    if api_key:
-                        print(f"[DEBUG] AIREFINERY_API_KEY loaded: {api_key[:10]}...{api_key[-10:]} (length: {len(api_key)})")
-                    else:
-                        print("[DEBUG] AIREFINERY_API_KEY not found in environment")
                     break
-    else:
-        print("[DEBUG] python-dotenv not available")
 
     parser = argparse.ArgumentParser(description=f"llms v{VERSION}")
     parser.add_argument('--config',       default=None, help='Path to config file', metavar='FILE')
