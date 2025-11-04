@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llms-py"
+version = "2.0.33"
+description = "A lightweight CLI tool and OpenAI-compatible server for querying multiple Large Language Model (LLM) providers"
+readme = "README.md"
+license = "BSD-3-Clause"
+authors = [
+    {name = "ServiceStack", email = "team@servicestack.net"}
+]
+maintainers = [
+    {name = "ServiceStack", email = "team@servicestack.net"}
+]
+keywords = ["llm", "ai", "openai", "anthropic", "google", "gemini", "groq", "mistral", "ollama", "cli", "server", "chat", "completion"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+    "Environment :: Console",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp",
+    "Pillow",
+    "airefinery-sdk>=1.21.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ServiceStack/llms"
+Documentation = "https://github.com/ServiceStack/llms#readme"
+Repository = "https://github.com/ServiceStack/llms"
+"Bug Reports" = "https://github.com/ServiceStack/llms/issues"
+
+[project.scripts]
+llms = "llms.main:main"
+
+[tool.setuptools]
+packages = ["llms"]
+
+[tool.setuptools.package-data]
+llms = ["index.html", "llms.json", "ui.json", "ui/*", "ui/lib/*"]
