@@ -266,6 +266,24 @@ llms -m "black-forest-labs/FLUX.1-schnell" --generate-image "Portrait of a scien
 
 Generated images are saved to the specified output path or displayed as base64 data if no output is specified.
 
+### Web UI Usage
+
+Generate images directly in the web UI:
+
+1. Start the server: `llms --serve 8000`
+2. Open http://localhost:8000 in your browser
+3. Select an image generation model from the dropdown (e.g., "black-forest-labs/FLUX.1-schnell")
+4. Type your image prompt in the chat input
+5. Click Send or press Enter
+6. The generated image will appear in the chat thread as markdown
+
+**Available image generation models**:
+- `flux.1-schnell` (black-forest-labs/FLUX.1-schnell) - Fast generation
+- `stable-diffusion-xl` (stabilityai/stable-diffusion-xl-base-1.0)
+- `dall-e-3` (if OpenAI provider is enabled)
+
+The UI automatically detects image generation models and routes requests to the `/v1/images/generations` endpoint instead of the chat completions endpoint.
+
 ### HTTP API
 
 Generate images via HTTP POST to `/v1/images/generations`:

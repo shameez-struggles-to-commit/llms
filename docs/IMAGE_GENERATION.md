@@ -373,18 +373,57 @@ document.body.appendChild(img);
 
 ### Next Steps (UI Integration)
 
-To complete the full image generation feature set, consider:
+#### Web UI Implementation ✅ COMPLETE
+
+The web UI now fully supports image generation with automatic model detection and routing:
+
+**Features Implemented**:
+
+1. **Model Detection** (`llms/ui/ai.mjs`):
+   - `isImageModel(modelId)` - Detects diffusion models by name patterns
+   - Patterns: flux, stable-diffusion, dall-e, midjourney, stablediffusion
+   - Automatic routing to correct API endpoint
+
+2. **Image Generation API** (`llms/ui/ai.mjs`):
+   - `generateImage(request)` - POST to `/v1/images/generations`
+   - Supports all parameters: prompt, model, n, size, response_format
+
+3. **Chat Integration** (`llms/ui/ChatPrompt.mjs`):
+   - `isImageGenerationModel()` - Helper to check current model
+   - `generateImage()` - Full async handler with:
+     - Thread creation with "Image Generation" title
+     - Progress indicators during generation
+     - Image display as markdown (base64 or URL)
+     - Error handling and user feedback
+     - Usage tracking (tokens, duration)
+   - Modified `sendMessage()` to route image models automatically
+
+**Usage**:
+1. Start server: `llms --serve 8000`
+2. Open http://localhost:8000 in browser
+3. Select image generation model (e.g., "black-forest-labs/FLUX.1-schnell")
+4. Type image prompt: "A serene mountain landscape at sunset"
+5. Click Send - image appears in chat thread
+
+**Supported Models** (auto-detected):
+- `flux.1-schnell` - black-forest-labs/FLUX.1-schnell
+- `stable-diffusion-xl` - stabilityai/stable-diffusion-xl-base-1.0
+- `dall-e-3` - OpenAI DALL-E 3 (if provider enabled)
+
+**Files Modified**:
+- `llms/ui/ai.mjs` - Added generateImage() and isImageModel()
+- `llms/ui/ChatPrompt.mjs` - Added image generation handler (~150 lines)
+
+**Future Enhancements** (optional):
 
 1. **UI Components** (Vue):
-   - Image generation tab/dialog
-   - Prompt input with suggestions
-   - Model selector dropdown
-   - Size selector (presets + custom)
-   - Generated image gallery
-   - Download button
-   - Regenerate with variations
+   - Dedicated image generation tab/dialog
+   - Size selector UI (dropdown for common sizes)
+   - Image gallery view
+   - Download button for generated images
+   - Prompt templates/suggestions
 
-2. **Features**:
+2. **Advanced Features**:
    - Image history/gallery
    - Prompt templates
    - Batch generation
