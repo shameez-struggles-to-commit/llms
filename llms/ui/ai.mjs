@@ -44,6 +44,23 @@ export const o = {
             ? this.get('/auth')
             : new Promise(resolve => resolve({ json: () => ({ responseStatus: { errorCode: '!requiresAuth' } })}))
     },
+    async generateImage(request) {
+        return this.post('/v1/images/generations', {
+            body: JSON.stringify(request)
+        })
+    },
+    isImageModel(modelId) {
+        // Check if model is a diffusion/image generation model
+        const imageModelPatterns = [
+            'flux',
+            'stable-diffusion',
+            'dall-e',
+            'midjourney',
+            'stablediffusion'
+        ]
+        const lowerModelId = (modelId || '').toLowerCase()
+        return imageModelPatterns.some(pattern => lowerModelId.includes(pattern))
+    },
     get isAdmin() {
         return !this.requiresAuth || this.auth && this.auth.roles?.includes('Admin')
     },

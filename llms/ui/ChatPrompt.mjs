@@ -310,9 +310,146 @@ export default {
             return textMessage?.content.find(c => c.type === 'text')?.text || ''
         }
 
+        // Check if this is an image generation request
+        const isImageGenerationModel = () => {
+            return ai.isImageModel(props.model?.id || props.model)
+        }
+
+        // Generate image using the images API
+        const generateImage = async () => {
+            if (!messageText.value.trim() || isGenerating.value || !props.model) return
+
+            errorStatus.value = null
+            const prompt = messageText.value.trim()
+            messageText.value = ''
+
+            const controller = new AbortController()
+            chatPrompt.abortController.value = controller
+
+            try {
+                let threadId
+
+                if (!currentThread.value) {
+                    const newThread = await threads.createThread('Image Generation', props.model, props.systemPrompt)
+                    threadId = newThread.id
+                    router.push(`${ai.base}/c/${newThread.id}`)
+                } else {
+                    threadId = currentThread.value.id
+                    await threads.updateThread(threadId, {
+                        model: props.model.id,
+                        info: toModelInfo(props.model),
+                        systemPrompt: props.systemPrompt
+                    })
+                }
+
+                // Add user message
+                await threads.addMessageToThread(threadId, {
+                    role: 'user',
+                    content: `Generate image: ${prompt}`
+                })
+
+                isGenerating.value = true
+                const startTime = Date.now()
+
+                // Create image generation request
+                const imageRequest = {
+                    prompt: prompt,
+                    model: props.model.id || props.model,
+                    n: 1,
+                    size: '1024x1024',
+                    response_format: 'b64_json'
+                }
+
+                const response = await ai.generateImage(imageRequest)
+
+                if (!response.ok) {
+                    const errorText = await response.text()
+                    let errorData
+                    try {
+                        errorData = JSON.parse(errorText)
+                    } catch (e) {
+                        errorData = { error: errorText }
+                    }
+                    errorStatus.value = {
+                        errorCode: `HTTP ${response.status} ${response.statusText}`,
+                        message: errorData.error || errorData.message || errorText,
+                        stackTrace: null
+                    }
+                    return
+                }
+
+                const result = await response.json()
+                console.debug('imageResponse', result)
+
+                if (result.error) {
+                    errorStatus.value = {
+                        errorCode: 'Error',
+                        message: result.error,
+                        stackTrace: null
+                    }
+                    return
+                }
+
+                // Display generated images
+                const images = result.data || []
+                let content = ''
+
+                for (let i = 0; i < images.length; i++) {
+                    const img = images[i]
+                    if (img.b64_json) {
+                        content += `![Generated Image ${i + 1}](data:image/png;base64,${img.b64_json})\n\n`
+                    } else if (img.url) {
+                        content += `![Generated Image ${i + 1}](${img.url})\n\n`
+                    }
+                }
+
+                const assistantMessage = {
+                    role: 'assistant',
+                    content: content
+                }
+
+                const duration = Date.now() - startTime
+                const usage = {
+                    duration: duration,
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0
+                }
+
+                if (result.metadata) {
+                    usage.duration = result.metadata.duration_ms || duration
+                }
+
+                await threads.addMessageToThread(threadId, assistantMessage, usage)
+                nextTick(addCopyButtons)
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Image generation cancelled by user')
+                } else {
+                    errorStatus.value = {
+                        errorCode: 'Error',
+                        message: error.message,
+                        stackTrace: error.stack
+                    }
+                }
+            } finally {
+                isGenerating.value = false
+                chatPrompt.abortController.value = null
+                nextTick(() => {
+                    refMessage.value?.focus()
+                })
+            }
+        }
+
         // Send message
         const sendMessage = async () => {
             if (!messageText.value.trim() || isGenerating.value || !props.model) return
+
+            // Check if this is an image generation request
+            if (isImageGenerationModel()) {
+                return await generateImage()
+            }
 
             // Clear any existing error message
             errorStatus.value = null
